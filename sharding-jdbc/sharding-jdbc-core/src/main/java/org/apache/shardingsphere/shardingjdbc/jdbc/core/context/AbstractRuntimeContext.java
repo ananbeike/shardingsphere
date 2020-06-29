@@ -17,51 +17,75 @@
 
 package org.apache.shardingsphere.shardingjdbc.jdbc.core.context;
 
-import lombok.Getter;
+import java.util.Properties;
+
+import org.apache.shardingsphere.core.config.log.ConfigurationLogger;
 import org.apache.shardingsphere.core.constant.properties.ShardingProperties;
 import org.apache.shardingsphere.core.constant.properties.ShardingPropertiesConstant;
 import org.apache.shardingsphere.core.database.DatabaseTypes;
 import org.apache.shardingsphere.core.execute.engine.ShardingExecuteEngine;
 import org.apache.shardingsphere.core.rule.BaseRule;
-import org.apache.shardingsphere.core.config.log.ConfigurationLogger;
 import org.apache.shardingsphere.spi.database.DatabaseType;
 import org.apache.shardingsphere.sql.parser.SQLParseEngine;
 import org.apache.shardingsphere.sql.parser.SQLParseEngineFactory;
 
-import java.util.Properties;
+import lombok.Getter;
 
 /**
  * Abstract runtime context.
  *
  * @author zhangliang
  * 
- * @param <T> type of rule
+ * @param <T>
+ *            type of rule
  */
 @Getter
-public abstract class AbstractRuntimeContext<T extends BaseRule> implements RuntimeContext<T> {
-    
+public abstract class AbstractRuntimeContext<T extends BaseRule> implements RuntimeContext<T>{
+
+    /**
+     * sharding规则
+     */
     private final T rule;
-    
+
+    /**
+     * sharding属性配置
+     */
     private final ShardingProperties props;
-    
+
+    /**
+     * 数据库类型
+     */
     private final DatabaseType databaseType;
-    
+
+    /**
+     * sharding执行引擎
+     */
     private final ShardingExecuteEngine executeEngine;
-    
+
+    /**
+     * sql解析引擎
+     */
     private final SQLParseEngine parseEngine;
-    
-    protected AbstractRuntimeContext(final T rule, final Properties props, final DatabaseType databaseType) {
+
+    protected AbstractRuntimeContext(final T rule, final Properties props, final DatabaseType databaseType){
         this.rule = rule;
+
         this.props = new ShardingProperties(null == props ? new Properties() : props);
+
         this.databaseType = databaseType;
-        executeEngine = new ShardingExecuteEngine(this.props.<Integer>getValue(ShardingPropertiesConstant.EXECUTOR_SIZE));
+
+        //sharding执行引擎
+        executeEngine = new ShardingExecuteEngine(this.props.<Integer> getValue(ShardingPropertiesConstant.EXECUTOR_SIZE));
+
+        //根据数据库类型指定 sql解析引擎
         parseEngine = SQLParseEngineFactory.getSQLParseEngine(DatabaseTypes.getTrunkDatabaseTypeName(databaseType));
+
         ConfigurationLogger.log(rule.getRuleConfiguration());
         ConfigurationLogger.log(props);
     }
-    
+
     @Override
-    public void close() throws Exception {
+    public void close() throws Exception{
         executeEngine.close();
     }
 }

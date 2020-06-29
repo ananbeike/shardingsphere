@@ -17,75 +17,77 @@
 
 package org.apache.shardingsphere.core.metadata.datasource;
 
-import org.apache.shardingsphere.core.config.DatabaseAccessConfiguration;
-import org.apache.shardingsphere.spi.database.DataSourceMetaData;
-import org.apache.shardingsphere.spi.database.DatabaseType;
-import org.apache.shardingsphere.spi.database.MemorizedDataSourceMetaData;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.shardingsphere.core.config.DatabaseAccessConfiguration;
+import org.apache.shardingsphere.spi.database.DataSourceMetaData;
+import org.apache.shardingsphere.spi.database.DatabaseType;
+import org.apache.shardingsphere.spi.database.MemorizedDataSourceMetaData;
+
 /**
  * Data source metas.
  *
+ * 所有数据源的元数据集合
+ * 
  * @author panjuan
  */
-public final class DataSourceMetas {
-    
+public final class DataSourceMetas{
+
     private final Map<String, DataSourceMetaData> dataSourceMetaDataMap;
-    
-    public DataSourceMetas(final DatabaseType databaseType, final Map<String, DatabaseAccessConfiguration> databaseAccessConfigurationMap) {
+
+    public DataSourceMetas(final DatabaseType databaseType, final Map<String, DatabaseAccessConfiguration> databaseAccessConfigurationMap){
         dataSourceMetaDataMap = getDataSourceMetaDataMap(databaseType, databaseAccessConfigurationMap);
     }
-    
-    private Map<String, DataSourceMetaData> getDataSourceMetaDataMap(final DatabaseType databaseType, final Map<String, DatabaseAccessConfiguration> databaseAccessConfigurationMap) {
+
+    private Map<String, DataSourceMetaData> getDataSourceMetaDataMap(final DatabaseType databaseType,final Map<String, DatabaseAccessConfiguration> databaseAccessConfigurationMap){
         Map<String, DataSourceMetaData> result = new HashMap<>(databaseAccessConfigurationMap.size(), 1);
-        for (Entry<String, DatabaseAccessConfiguration> entry : databaseAccessConfigurationMap.entrySet()) {
+        for (Entry<String, DatabaseAccessConfiguration> entry : databaseAccessConfigurationMap.entrySet()){
             result.put(entry.getKey(), databaseType.getDataSourceMetaData(entry.getValue().getUrl(), entry.getValue().getUsername()));
         }
         return result;
     }
-    
+
     /**
      * Get all instance data source names.
      *
      * @return instance data source names
      */
-    public Collection<String> getAllInstanceDataSourceNames() {
+    public Collection<String> getAllInstanceDataSourceNames(){
         Collection<String> result = new LinkedList<>();
-        for (Entry<String, DataSourceMetaData> entry : dataSourceMetaDataMap.entrySet()) {
-            if (!isExisted(entry.getKey(), result)) {
+        for (Entry<String, DataSourceMetaData> entry : dataSourceMetaDataMap.entrySet()){
+            if (!isExisted(entry.getKey(), result)){
                 result.add(entry.getKey());
             }
         }
         return result;
     }
-    
-    private boolean isExisted(final String dataSourceName, final Collection<String> existedDataSourceNames) {
+
+    private boolean isExisted(final String dataSourceName,final Collection<String> existedDataSourceNames){
         DataSourceMetaData sample = dataSourceMetaDataMap.get(dataSourceName);
-        for (String each : existedDataSourceNames) {
-            if (isInSameDatabaseInstance(sample, dataSourceMetaDataMap.get(each))) {
+        for (String each : existedDataSourceNames){
+            if (isInSameDatabaseInstance(sample, dataSourceMetaDataMap.get(each))){
                 return true;
             }
         }
         return false;
     }
-    
-    private boolean isInSameDatabaseInstance(final DataSourceMetaData sample, final DataSourceMetaData target) {
-        return sample instanceof MemorizedDataSourceMetaData
-                ? target.getSchema().equals(sample.getSchema()) : target.getHostName().equals(sample.getHostName()) && target.getPort() == sample.getPort();
+
+    private boolean isInSameDatabaseInstance(final DataSourceMetaData sample,final DataSourceMetaData target){
+        return sample instanceof MemorizedDataSourceMetaData ? target.getSchema().equals(sample.getSchema()) : target.getHostName().equals(sample.getHostName()) && target.getPort() == sample.getPort();
     }
-    
+
     /**
      * Get data source meta data.
      * 
-     * @param dataSourceName data source name
+     * @param dataSourceName
+     *            data source name
      * @return data source meta data
      */
-    public DataSourceMetaData getDataSourceMetaData(final String dataSourceName) {
+    public DataSourceMetaData getDataSourceMetaData(final String dataSourceName){
         return dataSourceMetaDataMap.get(dataSourceName);
     }
 }

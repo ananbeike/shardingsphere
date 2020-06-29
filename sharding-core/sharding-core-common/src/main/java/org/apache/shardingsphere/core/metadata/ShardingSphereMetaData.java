@@ -34,9 +34,15 @@ import java.util.Map;
  */
 @Getter
 public final class ShardingSphereMetaData {
-    
+
+    /**
+     * 所有数据源的元数据集合
+     */
     private final DataSourceMetas dataSources;
-    
+
+    /**
+     * 表的元数据
+     */
     private final TableMetas tables;
     
     private final RelationMetas relationMetas;

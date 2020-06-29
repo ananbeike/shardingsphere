@@ -17,45 +17,60 @@
 
 package org.apache.shardingsphere.shardingjdbc.jdbc.core.datasource;
 
-import com.google.common.base.Preconditions;
-import lombok.Getter;
+import java.sql.SQLException;
+import java.util.Map;
+import java.util.Properties;
+
+import javax.sql.DataSource;
+
 import org.apache.shardingsphere.core.rule.ShardingRule;
 import org.apache.shardingsphere.shardingjdbc.jdbc.adapter.AbstractDataSourceAdapter;
 import org.apache.shardingsphere.shardingjdbc.jdbc.core.connection.ShardingConnection;
 import org.apache.shardingsphere.shardingjdbc.jdbc.core.context.ShardingRuntimeContext;
 import org.apache.shardingsphere.transaction.core.TransactionTypeHolder;
 
-import javax.sql.DataSource;
-import java.sql.SQLException;
-import java.util.Map;
-import java.util.Properties;
+import com.google.common.base.Preconditions;
+
+import lombok.Getter;
 
 /**
  * Sharding data source.
  *
+ * 分片数据源对象
+ * 
+ * 包含：数据源map，运行上下文，
+ * private final Map<String, DataSource> dataSourceMap;
+ *
+ * private final DatabaseType databaseType;
+ * 
+ * private final ShardingRuntimeContext runtimeContext; 包含：sharding规则，数据库类型，sharding属性配置， sharding执行引擎，sql解析引擎 ，数据库元数据 ，Sharding元数据，sharding事物引擎
+ * 
  * @author zhangliang
  * @author zhaojun
  * @author panjuan
  */
 @Getter
-public class ShardingDataSource extends AbstractDataSourceAdapter {
-    
+public class ShardingDataSource extends AbstractDataSourceAdapter{
+
     private final ShardingRuntimeContext runtimeContext;
-    
-    public ShardingDataSource(final Map<String, DataSource> dataSourceMap, final ShardingRule shardingRule, final Properties props) throws SQLException {
+
+    public ShardingDataSource(final Map<String, DataSource> dataSourceMap, final ShardingRule shardingRule, final Properties props) throws SQLException{
+
         super(dataSourceMap);
+
         checkDataSourceType(dataSourceMap);
+
         runtimeContext = new ShardingRuntimeContext(dataSourceMap, shardingRule, props, getDatabaseType());
     }
-    
-    private void checkDataSourceType(final Map<String, DataSource> dataSourceMap) {
-        for (DataSource each : dataSourceMap.values()) {
+
+    private void checkDataSourceType(final Map<String, DataSource> dataSourceMap){
+        for (DataSource each : dataSourceMap.values()){
             Preconditions.checkArgument(!(each instanceof MasterSlaveDataSource), "Initialized data sources can not be master-slave data sources.");
         }
     }
-    
+
     @Override
-    public final ShardingConnection getConnection() {
+    public final ShardingConnection getConnection(){
         return new ShardingConnection(getDataSourceMap(), runtimeContext, TransactionTypeHolder.get());
     }
 }
